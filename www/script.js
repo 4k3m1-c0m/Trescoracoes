@@ -1,3 +1,70 @@
+
+const SUPABASE_URL = 'https://tgbsbqlbdssvftitueig.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8WHe5Nl2Z9DLrOq7Q40YoA_db488atB';
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+async function carregarProdutos() {
+  const grid = document.getElementById('products-grid');
+
+  const { data, error } = await supabaseClient
+    .from('produtos')
+    .select('id, nome, descricao, preco, imagem')
+    .eq('ativo', true)
+    .order('id');
+
+  if (error) {
+    console.error('Erro ao carregar produtos:', error);
+    grid.textContent = 'Não foi possível carregar os produtos.';
+    return;
+  }
+
+  grid.replaceChildren();
+
+  data.forEach((produto) => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+
+    const img = document.createElement('img');
+    img.src = produto.imagem || '';
+    img.alt = produto.nome;
+
+    const info = document.createElement('div');
+    info.className = 'card-info';
+
+    const nome = document.createElement('h3');
+    nome.textContent = produto.nome;
+
+    const descricao = document.createElement('p');
+    descricao.className = 'notes';
+    descricao.textContent = produto.descricao || '';
+
+    const preco = document.createElement('span');
+    preco.className = 'price';
+    preco.textContent = produto.preco.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+
+    const botao = document.createElement('button');
+    botao.textContent = 'Comprar';
+    botao.addEventListener('click', () => {
+      addToCart(produto.nome, Number(produto.preco));
+    });
+
+    info.append(nome, descricao, preco, botao);
+    card.append(img, info);
+    grid.appendChild(card);
+  });
+}
+
+carregarProdutos();
+
+
 let cart = [];
 
 function toggleCart() {
